@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Channel Ad Performance · January 2024</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #f5f0e8;
+  --bg2: #ede8df;
+  --surface: #ffffff;
+  --surface2: #faf7f2;
+  --border: #e0d9ce;
+  --border2: #d0c9bc;
+  --fb: #2563c7;
+  --gg: #c7252e;
+  --tt: #00836e;
+  --text: #1a1714;
+  --text2: #4a4540;
+  --muted: #9a9088;
+  --accent: #c9770a;
+  --accent2: #e8a020;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Sans', sans-serif;
+  min-height: 100vh;
+  padding: 32px 36px;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 95% 5%, rgba(197,119,10,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 30% at 5% 95%, rgba(37,99,199,0.06) 0%, transparent 50%);
+}
+
+/* HEADER */
+.header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  padding-bottom: 24px;
+  margin-bottom: 28px;
+  border-bottom: 2px solid var(--text);
+  position: relative;
+}
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 80px;
+  height: 2px;
+  background: var(--accent);
+}
+.header-eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.header-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-size: 2.4rem;
+  line-height: 1;
+  letter-spacing: -1px;
+  color: var(--text);
+}
+.header-title em {
+  font-style: italic;
+  color: var(--accent);
+}
+.header-right { text-align: right; }
+.header-date {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+.platform-pills { display: flex; gap: 8px; justify-content: flex-end; }
+.pill {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 2px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.pill.fb { background: rgba(37,99,199,0.1); color: var(--fb); border: 1px solid rgba(37,99,199,0.25); }
+.pill.gg { background: rgba(199,37,46,0.1); color: var(--gg); border: 1px solid rgba(199,37,46,0.25); }
+.pill.tt { background: rgba(0,131,110,0.1); color: var(--tt); border: 1px solid rgba(0,131,110,0.25); }
+
+/* KPI ROW */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: var(--border2);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.kpi-card {
+  background: var(--surface);
+  padding: 18px 16px;
+  position: relative;
+  transition: background 0.2s;
+}
+.kpi-card:hover { background: var(--surface2); }
+.kpi-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 16px; right: 16px;
+  height: 2px;
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.kpi-card:hover::after { opacity: 1; }
+.kpi-card.total::after { background: linear-gradient(90deg, var(--fb), var(--tt)); }
+.kpi-card.fb-c::after { background: var(--fb); }
+.kpi-card.gg-c::after { background: var(--gg); }
+.kpi-card.tt-c::after { background: var(--tt); }
+.kpi-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.kpi-value {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.kpi-sub {
+  font-size: 0.63rem;
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+}
+.good { color: var(--tt); }
+.warn { color: var(--accent); }
+.bad { color: var(--gg); }
+
+/* LAYOUT */
+.grid-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.grid-3b { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.grid-1 { margin-bottom: 16px; }
+
+/* CARDS */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 20px 22px;
+  position: relative;
+}
+.card-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--muted);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.card-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.7rem;
+  color: var(--border2);
+  font-weight: 700;
+}
+
+/* TOGGLE */
+.toggle-group { display: flex; gap: 4px; }
+.toggle-btn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.58rem;
+  padding: 3px 8px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 2px;
+  transition: all 0.15s;
+}
+.toggle-btn.active {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+}
+
+/* SELECT */
+select {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  padding: 3px 8px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+/* TABLE */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+thead th {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  padding: 8px 12px;
+  text-align: right;
+  border-bottom: 1px solid var(--border2);
+  background: var(--surface2);
+  white-space: nowrap;
+}
+thead th:first-child { text-align: left; }
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+tbody tr:hover { background: var(--surface2); }
+tbody td { padding: 10px 12px; text-align: right; color: var(--text2); }
+tbody td:first-child { text-align: left; font-weight: 500; color: var(--text); }
+.plat-tag {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.55rem;
+  padding: 2px 7px;
+  border-radius: 2px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.plat-fb { background: rgba(37,99,199,0.1); color: var(--fb); }
+.plat-gg { background: rgba(199,37,46,0.1); color: var(--gg); }
+.plat-tt { background: rgba(0,131,110,0.1); color: var(--tt); }
+
+/* MINI BARS */
+.mini-bar-wrap { display: flex; flex-direction: column; gap: 10px; }
+.mini-bar-row { display: flex; align-items: center; gap: 10px; }
+.mini-bar-label {
+  width: 140px;
+  font-size: 0.68rem;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+.mini-bar-track {
+  flex: 1;
+  height: 5px;
+  background: var(--bg2);
+  border-radius: 0;
+  overflow: hidden;
+}
+.mini-bar-fill { height: 100%; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
+.mini-bar-val {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--text2);
+  width: 48px;
+  text-align: right;
+  font-weight: 500;
+}
+
+/* FUNNEL */
+.funnel-wrap { display: flex; flex-direction: column; gap: 6px; padding: 4px 0; }
+.funnel-step { display: flex; align-items: center; gap: 10px; }
+.funnel-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--muted);
+  width: 85px;
+  text-align: right;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.funnel-bar-outer { flex: 1; }
+.funnel-bar {
+  height: 26px;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  font-weight: 500;
+  color: white;
+  transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+}
+.funnel-val {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  width: 70px;
+  color: var(--text2);
+  font-weight: 500;
+}
+.funnel-drop {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.58rem;
+  color: var(--muted);
+  text-align: center;
+  padding: 1px 0 1px 95px;
+}
+
+/* INSIGHT CARDS */
+.insight-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 16px; }
+.insight-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 20px;
+  border-left: 3px solid var(--accent);
+}
+.insight-card.blue { border-left-color: var(--fb); }
+.insight-card.green { border-left-color: var(--tt); }
+.insight-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--border2);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.insight-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.insight-body {
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--text2);
+}
+.insight-body strong { color: var(--text); font-weight: 600; }
+
+/* FOOTER */
+.footer {
+  margin-top: 24px;
+  text-align: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--muted);
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  letter-spacing: 1px;
+}
+
+/* ANIMATIONS */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.card, .kpi-card, .insight-card {
+  animation: fadeUp 0.4s ease both;
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <div class="header-eyebrow">Performance Report · January 2024</div>
+    <div class="header-title">Multi-Channel <em>Ad Intelligence</em></div>
+  </div>
+  <div class="header-right">
+    <div class="header-date">30 Days · 12 Campaigns · 3 Platforms</div>
+    <div class="platform-pills">
+      <span class="pill fb">Facebook</span>
+      <span class="pill gg">Google</span>
+      <span class="pill tt">TikTok</span>
+    </div>
+  </div>
+</div>
+
+<!-- KPI ROW -->
+<div class="kpi-row">
+  <div class="kpi-card total">
+    <div class="kpi-label">Total Spend</div>
+    <div class="kpi-value">$130.2K</div>
+    <div class="kpi-sub">All platforms · Jan</div>
+  </div>
+  <div class="kpi-card total">
+    <div class="kpi-label">Conversions</div>
+    <div class="kpi-value">13,363</div>
+    <div class="kpi-sub">Blended CPA $9.74</div>
+  </div>
+  <div class="kpi-card fb-c">
+    <div class="kpi-label">Facebook</div>
+    <div class="kpi-value">$18.3K</div>
+    <div class="kpi-sub good">CPA $7.64 · Best</div>
+  </div>
+  <div class="kpi-card gg-c">
+    <div class="kpi-label">Google</div>
+    <div class="kpi-value">$37.7K</div>
+    <div class="kpi-sub">CPA $8.93 · 4,218 conv</div>
+  </div>
+  <div class="kpi-card tt-c">
+    <div class="kpi-label">TikTok</div>
+    <div class="kpi-value">$74.3K</div>
+    <div class="kpi-sub warn">CPA $11.00 · 57% budget</div>
+  </div>
+  <div class="kpi-card total">
+    <div class="kpi-label">Impressions</div>
+    <div class="kpi-value">40.5M</div>
+    <div class="kpi-sub">TikTok 71% reach</div>
+  </div>
+  <div class="kpi-card total">
+    <div class="kpi-label">Total Clicks</div>
+    <div class="kpi-value">688K</div>
+    <div class="kpi-sub">Blended CPC $0.19</div>
+  </div>
+</div>
+
+<!-- ROW 1 -->
+<div class="grid-3">
+  <div class="card">
+    <div class="card-title">
+      Daily Spend Trend
+      <div class="toggle-group" id="spend-toggle">
+        <button class="toggle-btn active" onclick="toggleSpend('line',this)">Line</button>
+        <button class="toggle-btn" onclick="toggleSpend('bar',this)">Bar</button>
+      </div>
+    </div>
+    <canvas id="spendChart" height="155"></canvas>
+  </div>
+  <div class="card">
+    <div class="card-title">Budget Allocation</div>
+    <canvas id="budgetDonut" height="155"></canvas>
+  </div>
+  <div class="card">
+    <div class="card-title">Conversion Share</div>
+    <canvas id="convDonut" height="155"></canvas>
+  </div>
+</div>
+
+<!-- ROW 2 -->
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title">Daily Conversions <span class="card-num">01</span></div>
+    <canvas id="convChart" height="165"></canvas>
+  </div>
+  <div class="card">
+    <div class="card-title">CPA Trend — Lower is Better <span class="card-num">02</span></div>
+    <canvas id="cpaChart" height="165"></canvas>
+  </div>
+</div>
+
+<!-- ROW 3 -->
+<div class="grid-3b">
+  <div class="card">
+    <div class="card-title">
+      Platform Efficiency
+      <select id="metricSelect" onchange="updateMetric()">
+        <option value="ctr">CTR %</option>
+        <option value="cpc">CPC $</option>
+        <option value="cpm">CPM $</option>
+        <option value="cpa">CPA $</option>
+      </select>
+    </div>
+    <canvas id="metricBar" height="155"></canvas>
+  </div>
+  <div class="card">
+    <div class="card-title">Campaign CPA Ranking <span class="card-num">03</span></div>
+    <div class="mini-bar-wrap" id="cpaBars"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">TikTok Video Funnel <span class="card-num">04</span></div>
+    <div class="funnel-wrap" id="funnelWrap"></div>
+  </div>
+</div>
+
+<!-- TABLE -->
+<div class="grid-1">
+  <div class="card">
+    <div class="card-title">
+      Campaign Performance — All Platforms
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:0.6rem;color:var(--muted);font-family:'IBM Plex Mono',monospace">SORT</span>
+        <select id="sortSelect" onchange="renderTable()">
+          <option value="spend">Spend</option>
+          <option value="conversions">Conversions</option>
+          <option value="cpa">CPA</option>
+          <option value="ctr">CTR</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Campaign</th><th>Platform</th><th>Spend</th>
+          <th>Impressions</th><th>Clicks</th><th>CTR %</th>
+          <th>Conversions</th><th>CPA $</th>
+        </tr></thead>
+        <tbody id="campTbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- INSIGHTS -->
+<div class="insight-row">
+  <div class="insight-card">
+    <div class="insight-num">01</div>
+    <div class="insight-title">Best CPA Platform</div>
+    <div class="insight-body"><strong>Facebook ($7.64 CPA)</strong> is 30% cheaper than TikTok. Conversions Retargeting campaign hits <strong>$5.95 CPA</strong> — the top performer across all platforms. Recommend increasing Facebook budget allocation.</div>
+  </div>
+  <div class="insight-card blue">
+    <div class="insight-num">02</div>
+    <div class="insight-title">Budget vs Returns Gap</div>
+    <div class="insight-body">TikTok takes <strong>57% of budget</strong> but delivers only 50.5% of conversions. Google Search Brand Terms achieves <strong>$5.10 CPA</strong> — reallocating from TikTok Traffic would improve blended efficiency significantly.</div>
+  </div>
+  <div class="insight-card green">
+    <div class="insight-num">03</div>
+    <div class="insight-title">Scale Opportunity</div>
+    <div class="insight-body">TikTok Influencer Collab generated <strong>2,653 conversions</strong> — highest single-campaign volume. At <strong>$2.59 CPM</strong>, TikTok is the cheapest reach platform. Ideal for top-of-funnel awareness at scale.</div>
+  </div>
+</div>
+
+<div class="footer">
+  UNIFIED DATA MODEL · FACEBOOK ADS · GOOGLE ADS · TIKTOK · JANUARY 2024 · 30 DAYS · 12 CAMPAIGNS
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────
+const daily = [{"date":"2024-01-01","platform":"Facebook","impressions":92646,"clicks":2693,"spend":533.2,"conversions":69,"video_views":14035,"ctr":2.91,"cpc":0.2,"cpa":7.73,"cpm":5.76},{"date":"2024-01-02","platform":"Facebook","impressions":92812,"clicks":2791,"spend":554.0,"conversions":73,"video_views":14236,"ctr":3.01,"cpc":0.2,"cpa":7.59,"cpm":5.97},{"date":"2024-01-03","platform":"Facebook","impressions":98369,"clicks":2912,"spend":546.9,"conversions":73,"video_views":15258,"ctr":2.96,"cpc":0.19,"cpa":7.49,"cpm":5.56},{"date":"2024-01-04","platform":"Facebook","impressions":133691,"clicks":1935,"spend":477.4,"conversions":62,"video_views":56479,"ctr":1.45,"cpc":0.25,"cpa":7.7,"cpm":3.57},{"date":"2024-01-05","platform":"Facebook","impressions":130913,"clicks":1757,"spend":446.3,"conversions":55,"video_views":58813,"ctr":1.34,"cpc":0.25,"cpa":8.11,"cpm":3.41},{"date":"2024-01-06","platform":"Facebook","impressions":149701,"clicks":2412,"spend":412.4,"conversions":40,"video_views":60035,"ctr":1.61,"cpc":0.17,"cpa":10.31,"cpm":2.75},{"date":"2024-01-07","platform":"Facebook","impressions":100566,"clicks":3057,"spend":591.6,"conversions":83,"video_views":16035,"ctr":3.04,"cpc":0.19,"cpa":7.13,"cpm":5.88},{"date":"2024-01-08","platform":"Facebook","impressions":132813,"clicks":1746,"spend":446.1,"conversions":56,"video_views":60146,"ctr":1.31,"cpc":0.26,"cpa":7.97,"cpm":3.36},{"date":"2024-01-09","platform":"Facebook","impressions":156702,"clicks":2577,"spend":435.1,"conversions":47,"video_views":62402,"ctr":1.64,"cpc":0.17,"cpa":9.26,"cpm":2.78},{"date":"2024-01-10","platform":"Facebook","impressions":100812,"clicks":3046,"spend":596.5,"conversions":84,"video_views":15557,"ctr":3.02,"cpc":0.2,"cpa":7.1,"cpm":5.92},{"date":"2024-01-11","platform":"Facebook","impressions":182713,"clicks":3624,"spend":732.3,"conversions":100,"video_views":68980,"ctr":1.98,"cpc":0.2,"cpa":7.32,"cpm":4.01},{"date":"2024-01-12","platform":"Facebook","impressions":173470,"clicks":3305,"spend":689.2,"conversions":89,"video_views":65080,"ctr":1.91,"cpc":0.21,"cpa":7.74,"cpm":3.97},{"date":"2024-01-13","platform":"Facebook","impressions":151602,"clicks":2820,"spend":588.8,"conversions":72,"video_views":56481,"ctr":1.86,"cpc":0.21,"cpa":8.18,"cpm":3.88},{"date":"2024-01-14","platform":"Facebook","impressions":143158,"clicks":2633,"spend":553.3,"conversions":65,"video_views":52800,"ctr":1.84,"cpc":0.21,"cpa":8.51,"cpm":3.86},{"date":"2024-01-15","platform":"Facebook","impressions":163813,"clicks":3038,"spend":637.9,"conversions":82,"video_views":60824,"ctr":1.85,"cpc":0.21,"cpa":7.78,"cpm":3.89},{"date":"2024-01-16","platform":"Facebook","impressions":176380,"clicks":3391,"spend":705.2,"conversions":95,"video_views":65814,"ctr":1.92,"cpc":0.21,"cpa":7.42,"cpm":4.0},{"date":"2024-01-17","platform":"Facebook","impressions":183036,"clicks":3635,"spend":748.3,"conversions":105,"video_views":67935,"ctr":1.99,"cpc":0.21,"cpa":7.13,"cpm":4.09},{"date":"2024-01-18","platform":"Facebook","impressions":175380,"clicks":3418,"spend":715.2,"conversions":97,"video_views":64413,"ctr":1.95,"cpc":0.21,"cpa":7.37,"cpm":4.08},{"date":"2024-01-19","platform":"Facebook","impressions":169137,"clicks":3221,"spend":673.5,"conversions":89,"video_views":62413,"ctr":1.9,"cpc":0.21,"cpa":7.57,"cpm":3.98},{"date":"2024-01-20","platform":"Facebook","impressions":154925,"clicks":2891,"spend":598.8,"conversions":76,"video_views":57180,"ctr":1.87,"cpc":0.21,"cpa":7.88,"cpm":3.87},{"date":"2024-01-21","platform":"Facebook","impressions":147036,"clicks":2691,"spend":544.8,"conversions":68,"video_views":53424,"ctr":1.83,"cpc":0.2,"cpa":8.01,"cpm":3.71},{"date":"2024-01-22","platform":"Facebook","impressions":159602,"clicks":2991,"spend":618.6,"conversions":81,"video_views":58380,"ctr":1.87,"cpc":0.21,"cpa":7.64,"cpm":3.88},{"date":"2024-01-23","platform":"Facebook","impressions":171046,"clicks":3257,"spend":674.0,"conversions":88,"video_views":63447,"ctr":1.9,"cpc":0.21,"cpa":7.66,"cpm":3.94},{"date":"2024-01-24","platform":"Facebook","impressions":179925,"clicks":3535,"spend":725.0,"conversions":99,"video_views":66280,"ctr":1.96,"cpc":0.21,"cpa":7.32,"cpm":4.03},{"date":"2024-01-25","platform":"Facebook","impressions":185924,"clicks":3724,"spend":763.1,"conversions":107,"video_views":68268,"ctr":2.0,"cpc":0.2,"cpa":7.13,"cpm":4.1},{"date":"2024-01-26","platform":"Facebook","impressions":176703,"clicks":3429,"spend":728.0,"conversions":100,"video_views":64936,"ctr":1.94,"cpc":0.21,"cpa":7.28,"cpm":4.12},{"date":"2024-01-27","platform":"Facebook","impressions":162925,"clicks":3035,"spend":626.9,"conversions":83,"video_views":59968,"ctr":1.86,"cpc":0.21,"cpa":7.55,"cpm":3.85},{"date":"2024-01-28","platform":"Facebook","impressions":155379,"clicks":2850,"spend":584.8,"conversions":75,"video_views":57225,"ctr":1.83,"cpc":0.21,"cpa":7.8,"cpm":3.76},{"date":"2024-01-29","platform":"Facebook","impressions":166925,"clicks":3166,"spend":657.3,"conversions":88,"video_views":61702,"ctr":1.9,"cpc":0.21,"cpa":7.47,"cpm":3.94},{"date":"2024-01-30","platform":"Facebook","impressions":173370,"clicks":3319,"spend":687.5,"conversions":94,"video_views":63958,"ctr":1.91,"cpc":0.21,"cpa":7.31,"cpm":3.97},{"date":"2024-01-01","platform":"Google","impressions":137024,"clicks":4469,"spend":1225.9,"conversions":135,"video_views":0,"ctr":3.26,"cpc":0.27,"cpa":9.08,"cpm":8.95},{"date":"2024-01-02","platform":"Google","impressions":139035,"clicks":4568,"spend":1225.6,"conversions":140,"video_views":0,"ctr":3.29,"cpc":0.27,"cpa":8.75,"cpm":8.82},{"date":"2024-01-03","platform":"Google","impressions":193691,"clicks":2546,"spend":960.3,"conversions":79,"video_views":0,"ctr":1.31,"cpc":0.38,"cpa":12.16,"cpm":4.96},{"date":"2024-01-04","platform":"Google","impressions":229701,"clicks":4068,"spend":803.5,"conversions":129,"video_views":0,"ctr":1.77,"cpc":0.2,"cpa":6.23,"cpm":3.5},{"date":"2024-01-05","platform":"Google","impressions":199025,"clicks":2613,"spend":953.1,"conversions":83,"video_views":0,"ctr":1.31,"cpc":0.36,"cpa":11.48,"cpm":4.79},{"date":"2024-01-06","platform":"Google","impressions":227813,"clicks":4123,"spend":806.5,"conversions":129,"video_views":0,"ctr":1.81,"cpc":0.2,"cpa":6.25,"cpm":3.54},{"date":"2024-01-07","platform":"Google","impressions":141590,"clicks":4623,"spend":1265.6,"conversions":142,"video_views":0,"ctr":3.27,"cpc":0.27,"cpa":8.91,"cpm":8.94},{"date":"2024-01-08","platform":"Google","impressions":196479,"clicks":2568,"spend":972.8,"conversions":80,"video_views":0,"ctr":1.31,"cpc":0.38,"cpa":12.16,"cpm":4.95},{"date":"2024-01-09","platform":"Google","impressions":228035,"clicks":4191,"spend":817.7,"conversions":131,"video_views":0,"ctr":1.84,"cpc":0.2,"cpa":6.24,"cpm":3.59},{"date":"2024-01-10","platform":"Google","impressions":138813,"clicks":4457,"spend":1239.0,"conversions":135,"video_views":0,"ctr":3.21,"cpc":0.28,"cpa":9.18,"cpm":8.93},{"date":"2024-01-11","platform":"Google","impressions":282147,"clicks":5280,"spend":1464.0,"conversions":164,"video_views":0,"ctr":1.87,"cpc":0.28,"cpa":8.93,"cpm":5.19},{"date":"2024-01-12","platform":"Google","impressions":275036,"clicks":5047,"spend":1407.2,"conversions":153,"video_views":0,"ctr":1.84,"cpc":0.28,"cpa":9.2,"cpm":5.12},{"date":"2024-01-13","platform":"Google","impressions":246380,"clicks":4502,"spend":1248.7,"conversions":136,"video_views":0,"ctr":1.83,"cpc":0.28,"cpa":9.18,"cpm":5.07},{"date":"2024-01-14","platform":"Google","impressions":238369,"clicks":4302,"spend":1197.9,"conversions":129,"video_views":0,"ctr":1.8,"cpc":0.28,"cpa":9.29,"cpm":5.03},{"date":"2024-01-15","platform":"Google","impressions":263814,"clicks":4791,"spend":1334.9,"conversions":146,"video_views":0,"ctr":1.82,"cpc":0.28,"cpa":9.14,"cpm":5.06},{"date":"2024-01-16","platform":"Google","impressions":273824,"clicks":5113,"spend":1408.1,"conversions":158,"video_views":0,"ctr":1.87,"cpc":0.28,"cpa":8.91,"cpm":5.14},{"date":"2024-01-17","platform":"Google","impressions":285380,"clicks":5446,"spend":1471.6,"conversions":166,"video_views":0,"ctr":1.91,"cpc":0.27,"cpa":8.87,"cpm":5.16},{"date":"2024-01-18","platform":"Google","impressions":278713,"clicks":5225,"spend":1431.4,"conversions":160,"video_views":0,"ctr":1.87,"cpc":0.27,"cpa":8.95,"cpm":5.14},{"date":"2024-01-19","platform":"Google","impressions":270258,"clicks":4958,"spend":1374.4,"conversions":151,"video_views":0,"ctr":1.83,"cpc":0.28,"cpa":9.1,"cpm":5.09},{"date":"2024-01-20","platform":"Google","impressions":252369,"clicks":4447,"spend":1234.0,"conversions":133,"video_views":0,"ctr":1.76,"cpc":0.28,"cpa":9.28,"cpm":4.89},{"date":"2024-01-21","platform":"Google","impressions":241047,"clicks":4279,"spend":1188.1,"conversions":128,"video_views":0,"ctr":1.78,"cpc":0.28,"cpa":9.28,"cpm":4.93},{"date":"2024-01-22","platform":"Google","impressions":261803,"clicks":4791,"spend":1324.0,"conversions":146,"video_views":0,"ctr":1.83,"cpc":0.28,"cpa":9.07,"cpm":5.06},{"date":"2024-01-23","platform":"Google","impressions":274491,"clicks":5146,"spend":1401.0,"conversions":158,"video_views":0,"ctr":1.87,"cpc":0.27,"cpa":8.87,"cpm":5.1},{"date":"2024-01-24","platform":"Google","impressions":287703,"clicks":5436,"spend":1481.3,"conversions":169,"video_views":0,"ctr":1.89,"cpc":0.27,"cpa":8.77,"cpm":5.15},{"date":"2024-01-25","platform":"Google","impressions":295380,"clicks":5636,"spend":1529.5,"conversions":176,"video_views":0,"ctr":1.91,"cpc":0.27,"cpa":8.69,"cpm":5.18},{"date":"2024-01-26","platform":"Google","impressions":285480,"clicks":5269,"spend":1455.4,"conversions":164,"video_views":0,"ctr":1.85,"cpc":0.28,"cpa":8.87,"cpm":5.1},{"date":"2024-01-27","platform":"Google","impressions":275925,"clicks":5058,"spend":1398.7,"conversions":155,"video_views":0,"ctr":1.83,"cpc":0.28,"cpa":9.02,"cpm":5.07},{"date":"2024-01-28","platform":"Google","impressions":260036,"clicks":4635,"spend":1297.0,"conversions":138,"video_views":0,"ctr":1.78,"cpc":0.28,"cpa":9.4,"cpm":4.99},{"date":"2024-01-29","platform":"Google","impressions":269147,"clicks":4912,"spend":1363.4,"conversions":149,"video_views":0,"ctr":1.83,"cpc":0.28,"cpa":9.15,"cpm":5.07},{"date":"2024-01-30","platform":"Google","impressions":275036,"clicks":5091,"spend":1405.6,"conversions":156,"video_views":0,"ctr":1.85,"cpc":0.28,"cpa":9.01,"cpm":5.11},{"date":"2024-01-01","platform":"TikTok","impressions":547257,"clicks":8691,"spend":1481.2,"conversions":124,"video_views":433146,"ctr":1.59,"cpc":0.17,"cpa":11.95,"cpm":2.71},{"date":"2024-01-02","platform":"TikTok","impressions":578590,"clicks":9257,"spend":1552.4,"conversions":132,"video_views":455368,"ctr":1.6,"cpc":0.17,"cpa":11.76,"cpm":2.68},{"date":"2024-01-03","platform":"TikTok","impressions":681479,"clicks":11035,"spend":1948.0,"conversions":183,"video_views":560813,"ctr":1.62,"cpc":0.18,"cpa":10.64,"cpm":2.86},{"date":"2024-01-04","platform":"TikTok","impressions":825913,"clicks":13025,"spend":1810.2,"conversions":159,"video_views":676580,"ctr":1.58,"cpc":0.14,"cpa":11.38,"cpm":2.19},{"date":"2024-01-05","platform":"TikTok","impressions":719924,"clicks":11757,"spend":2050.9,"conversions":194,"video_views":583924,"ctr":1.63,"cpc":0.17,"cpa":10.57,"cpm":2.85},{"date":"2024-01-06","platform":"TikTok","impressions":852469,"clicks":13302,"spend":1856.8,"conversions":163,"video_views":695924,"ctr":1.56,"cpc":0.14,"cpa":11.39,"cpm":2.18},{"date":"2024-01-07","platform":"TikTok","impressions":630147,"clicks":10146,"spend":1681.2,"conversions":143,"video_views":495014,"ctr":1.61,"cpc":0.17,"cpa":11.76,"cpm":2.67},{"date":"2024-01-08","platform":"TikTok","impressions":753480,"clicks":12046,"spend":2087.7,"conversions":199,"video_views":610368,"ctr":1.6,"cpc":0.17,"cpa":10.49,"cpm":2.77},{"date":"2024-01-09","platform":"TikTok","impressions":909147,"clicks":14146,"spend":1961.0,"conversions":173,"video_views":740368,"ctr":1.56,"cpc":0.14,"cpa":11.34,"cpm":2.16},{"date":"2024-01-10","platform":"TikTok","impressions":625368,"clicks":10057,"spend":1674.9,"conversions":144,"video_views":489369,"ctr":1.61,"cpc":0.17,"cpa":11.63,"cpm":2.68},{"date":"2024-01-11","platform":"TikTok","impressions":1082602,"clicks":17713,"spend":2816.1,"conversions":260,"video_views":879355,"ctr":1.64,"cpc":0.16,"cpa":10.83,"cpm":2.6},{"date":"2024-01-12","platform":"TikTok","impressions":1044259,"clicks":16947,"spend":2709.3,"conversions":246,"video_views":839380,"ctr":1.62,"cpc":0.16,"cpa":11.01,"cpm":2.59},{"date":"2024-01-13","platform":"TikTok","impressions":938258,"clicks":15158,"spend":2466.9,"conversions":225,"video_views":753036,"ctr":1.62,"cpc":0.16,"cpa":10.96,"cpm":2.63},{"date":"2024-01-14","platform":"TikTok","impressions":904824,"clicks":14513,"spend":2386.4,"conversions":216,"video_views":726269,"ctr":1.6,"cpc":0.16,"cpa":11.05,"cpm":2.64},{"date":"2024-01-15","platform":"TikTok","impressions":980380,"clicks":15824,"spend":2560.1,"conversions":233,"video_views":785470,"ctr":1.61,"cpc":0.16,"cpa":10.99,"cpm":2.61},{"date":"2024-01-16","platform":"TikTok","impressions":1114935,"clicks":18026,"spend":2893.6,"conversions":266,"video_views":896910,"ctr":1.62,"cpc":0.16,"cpa":10.88,"cpm":2.6},{"date":"2024-01-17","platform":"TikTok","impressions":1171591,"clicks":18936,"spend":3048.2,"conversions":280,"video_views":943703,"ctr":1.62,"cpc":0.16,"cpa":10.89,"cpm":2.6},{"date":"2024-01-18","platform":"TikTok","impressions":1134825,"clicks":18224,"spend":2959.3,"conversions":271,"video_views":913369,"ctr":1.61,"cpc":0.16,"cpa":10.92,"cpm":2.61},{"date":"2024-01-19","platform":"TikTok","impressions":1092602,"clicks":17591,"spend":2826.1,"conversions":258,"video_views":881803,"ctr":1.61,"cpc":0.16,"cpa":10.95,"cpm":2.59},{"date":"2024-01-20","platform":"TikTok","impressions":1006492,"clicks":16069,"spend":2607.2,"conversions":238,"video_views":801814,"ctr":1.6,"cpc":0.16,"cpa":10.95,"cpm":2.59},{"date":"2024-01-21","platform":"TikTok","impressions":932592,"clicks":15047,"spend":2422.5,"conversions":221,"video_views":743592,"ctr":1.61,"cpc":0.16,"cpa":10.96,"cpm":2.6},{"date":"2024-01-22","platform":"TikTok","impressions":1044259,"clicks":16947,"spend":2731.5,"conversions":246,"video_views":839380,"ctr":1.62,"cpc":0.16,"cpa":11.1,"cpm":2.62},{"date":"2024-01-23","platform":"TikTok","impressions":1114935,"clicks":18026,"spend":2893.6,"conversions":266,"video_views":896910,"ctr":1.62,"cpc":0.16,"cpa":10.88,"cpm":2.6},{"date":"2024-01-24","platform":"TikTok","impressions":1209369,"clicks":19491,"spend":3171.7,"conversions":290,"video_views":981602,"ctr":1.61,"cpc":0.16,"cpa":10.94,"cpm":2.62},{"date":"2024-01-25","platform":"TikTok","impressions":1249148,"clicks":20102,"spend":3258.8,"conversions":298,"video_views":1021481,"ctr":1.61,"cpc":0.16,"cpa":10.94,"cpm":2.61},{"date":"2024-01-26","platform":"TikTok","impressions":1171591,"clicks":18936,"spend":3048.2,"conversions":280,"video_views":943703,"ctr":1.62,"cpc":0.16,"cpa":10.89,"cpm":2.6},{"date":"2024-01-27","platform":"TikTok","impressions":1092602,"clicks":17591,"spend":2826.1,"conversions":258,"video_views":881803,"ctr":1.61,"cpc":0.16,"cpa":10.95,"cpm":2.59},{"date":"2024-01-28","platform":"TikTok","impressions":1041481,"clicks":16802,"spend":2675.5,"conversions":247,"video_views":833714,"ctr":1.61,"cpc":0.16,"cpa":10.83,"cpm":2.57},{"date":"2024-01-29","platform":"TikTok","impressions":1114935,"clicks":18026,"spend":2893.6,"conversions":266,"video_views":896910,"ctr":1.62,"cpc":0.16,"cpa":10.88,"cpm":2.6},{"date":"2024-01-30","platform":"TikTok","impressions":1142713,"clicks":18413,"spend":2967.7,"conversions":271,"video_views":921481,"ctr":1.61,"cpc":0.16,"cpa":10.95,"cpm":2.6}];
+
+const campaigns = [{"campaign":"Brand_Awareness_Q1","platform":"Facebook","spend":4087.9,"impressions":1425359,"clicks":28917,"conversions":433,"cpa":9.44,"ctr":2.03},{"campaign":"Conversions_Retargeting","platform":"Facebook","spend":6371.0,"impressions":369383,"clicks":17103,"conversions":1070,"cpa":5.95,"ctr":4.63},{"campaign":"Traffic_Drive_Jan","platform":"Facebook","spend":5574.1,"impressions":993150,"clicks":36560,"conversions":741,"cpa":7.52,"ctr":3.68},{"campaign":"Video_Views_Campaign","platform":"Facebook","spend":2259.0,"impressions":1753582,"clicks":6319,"conversions":151,"cpa":14.96,"ctr":0.36},{"campaign":"Search_Brand_Terms","platform":"Google","spend":7368.1,"impressions":740093,"clicks":38603,"conversions":1445,"cpa":5.1,"ctr":5.22},{"campaign":"Search_Generic_Terms","platform":"Google","spend":15548.9,"impressions":1215240,"clicks":24162,"conversions":627,"cpa":24.8,"ctr":1.99},{"campaign":"Shopping_All_Products","platform":"Google","spend":11416.7,"impressions":1871485,"clicks":62446,"conversions":1801,"cpa":6.34,"ctr":3.34},{"campaign":"Display_Remarketing","platform":"Google","spend":3352.5,"impressions":3396726,"clicks":12379,"conversions":345,"cpa":9.72,"ctr":0.36},{"campaign":"Awareness_GenZ","platform":"TikTok","spend":15640.0,"impressions":8059087,"clicks":118539,"conversions":1203,"cpa":13.0,"ctr":1.47},{"campaign":"Conversion_Focus","platform":"TikTok","spend":20605.9,"impressions":3970406,"clicks":75914,"conversions":2061,"cpa":10.0,"ctr":1.91},{"campaign":"Traffic_Campaign","platform":"TikTok","spend":11708.5,"impressions":6165526,"clicks":96707,"conversions":833,"cpa":14.06,"ctr":1.57},{"campaign":"Influencer_Collab","platform":"TikTok","spend":26312.3,"impressions":10513148,"clicks":170684,"conversions":2653,"cpa":9.92,"ctr":1.62}];
+
+// ── SETUP ─────────────────────────────────────────────────────────────────
+const FB = '#2563c7', GG = '#c7252e', TT = '#00836e';
+const FB_L = 'rgba(37,99,199,0.12)', GG_L = 'rgba(199,37,46,0.12)', TT_L = 'rgba(0,131,110,0.12)';
+const colors = { Facebook: FB, Google: GG, TikTok: TT };
+const fills = { Facebook: FB_L, Google: GG_L, TikTok: TT_L };
+const platforms = ['Facebook','Google','TikTok'];
+const dates = [...new Set(daily.filter(d=>d.platform==='Facebook').map(d=>d.date))].sort();
+const labels = dates.map(d=>d.slice(5));
+
+const baseScales = {
+  x: { grid: { color: 'rgba(160,150,140,0.15)', drawBorder: false }, ticks: { color: '#9a9088', font: { family: 'IBM Plex Mono', size: 9 }, maxRotation: 0, maxTicksLimit: 8 } },
+  y: { grid: { color: 'rgba(160,150,140,0.15)', drawBorder: false }, ticks: { color: '#9a9088', font: { family: 'IBM Plex Mono', size: 9 } } }
+};
+const baseLegend = { labels: { color: '#4a4540', font: { family: 'IBM Plex Mono', size: 10 }, boxWidth: 8, padding: 14, usePointStyle: true, pointStyle: 'circle' } };
+
+function byDate(metric) {
+  const out = {};
+  for (const p of platforms) {
+    out[p] = dates.map(date => {
+      const r = daily.find(d=>d.date===date && d.platform===p);
+      return r ? r[metric] : null;
+    });
+  }
+  return out;
+}
+
+// ── SPEND CHART (smooth area) ──────────────────────────────────────────────
+const spendData = byDate('spend');
+let spendChart = new Chart(document.getElementById('spendChart'), {
+  type: 'line',
+  data: {
+    labels,
+    datasets: platforms.map(p => ({
+      label: p, data: spendData[p],
+      borderColor: colors[p],
+      backgroundColor: fills[p],
+      borderWidth: 2, pointRadius: 0, pointHoverRadius: 4,
+      fill: true, tension: 0.4
+    }))
+  },
+  options: {
+    responsive: true, maintainAspectRatio: true,
+    interaction: { mode: 'index', intersect: false },
+    plugins: { legend: baseLegend },
+    scales: baseScales
+  }
+});
+
+function toggleSpend(type, btn) {
+  document.querySelectorAll('#spend-toggle .toggle-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if (type === 'bar') {
+    spendChart.config.type = 'bar';
+    spendChart.data.datasets.forEach((ds,i) => {
+      ds.backgroundColor = [FB_L.replace('0.12','0.7'), GG_L.replace('0.12','0.7'), TT_L.replace('0.12','0.7')][i];
+      ds.borderRadius = 2;
+      ds.fill = false;
+    });
+  } else {
+    spendChart.config.type = 'line';
+    spendChart.data.datasets.forEach((ds,i) => {
+      ds.backgroundColor = [FB_L, GG_L, TT_L][i];
+      ds.fill = true;
+      ds.tension = 0.4;
+    });
+  }
+  spendChart.update();
+}
+
+// ── DONUTS ─────────────────────────────────────────────────────────────────
+const donutOpts = {
+  cutout: '68%',
+  responsive: true, maintainAspectRatio: true,
+  plugins: {
+    legend: { position: 'bottom', labels: { color: '#4a4540', font: { family: 'IBM Plex Mono', size: 10 }, boxWidth: 8, padding: 12, usePointStyle: true, pointStyle: 'circle' } }
+  }
+};
+new Chart(document.getElementById('budgetDonut'), {
+  type: 'doughnut',
+  data: { labels: platforms, datasets: [{ data: [18292,37686,74267], backgroundColor: [FB,GG,TT], borderWidth: 3, borderColor: '#ffffff', hoverOffset: 4 }] },
+  options: donutOpts
+});
+new Chart(document.getElementById('convDonut'), {
+  type: 'doughnut',
+  data: { labels: platforms, datasets: [{ data: [2395,4218,6750], backgroundColor: [FB,GG,TT], borderWidth: 3, borderColor: '#ffffff', hoverOffset: 4 }] },
+  options: donutOpts
+});
+
+// ── CONVERSIONS — stacked area ─────────────────────────────────────────────
+const convData = byDate('conversions');
+new Chart(document.getElementById('convChart'), {
+  type: 'line',
+  data: {
+    labels,
+    datasets: platforms.map(p => ({
+      label: p, data: convData[p],
+      borderColor: colors[p], backgroundColor: fills[p],
+      borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 4,
+      fill: true, tension: 0.4
+    }))
+  },
+  options: {
+    responsive: true, maintainAspectRatio: true,
+    interaction: { mode: 'index', intersect: false },
+    plugins: { legend: baseLegend },
+    scales: baseScales
+  }
+});
+
+// ── CPA TREND — stepped line ───────────────────────────────────────────────
+const cpaData = byDate('cpa');
+new Chart(document.getElementById('cpaChart'), {
+  type: 'line',
+  data: {
+    labels,
+    datasets: platforms.map(p => ({
+      label: p, data: cpaData[p],
+      borderColor: colors[p], backgroundColor: 'transparent',
+      borderWidth: 2, pointRadius: 2, pointHoverRadius: 5,
+      pointBackgroundColor: colors[p],
+      fill: false, tension: 0,
+      stepped: false
+    }))
+  },
+  options: {
+    responsive: true, maintainAspectRatio: true,
+    interaction: { mode: 'index', intersect: false },
+    plugins: { legend: baseLegend },
+    scales: baseScales
+  }
+});
+
+// ── PLATFORM EFFICIENCY — horizontal lollipop style ───────────────────────
+const platTotals = {
+  Facebook: { spend:18292, impressions:4541474, clicks:88899, conversions:2395 },
+  Google:   { spend:37686, impressions:7223544, clicks:137590, conversions:4218 },
+  TikTok:   { spend:74267, impressions:28708167, clicks:461844, conversions:6750 }
+};
+function calcM(p,m) {
+  const t = platTotals[p];
+  if (m==='ctr') return +(t.clicks/t.impressions*100).toFixed(2);
+  if (m==='cpc') return +(t.spend/t.clicks).toFixed(2);
+  if (m==='cpm') return +(t.spend/t.impressions*1000).toFixed(2);
+  if (m==='cpa') return +(t.spend/t.conversions).toFixed(2);
+}
+
+let metricChart = new Chart(document.getElementById('metricBar'), {
+  type: 'bar',
+  data: {
+    labels: platforms,
+    datasets: [{
+      label: 'CTR %',
+      data: platforms.map(p=>calcM(p,'ctr')),
+      backgroundColor: [FB, GG, TT],
+      borderRadius: 0,
+      borderSkipped: false,
+      barThickness: 28
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(160,150,140,0.15)' }, ticks: { color: '#9a9088', font: { family: 'IBM Plex Mono', size: 9 } } },
+      y: { grid: { display: false }, ticks: { color: '#4a4540', font: { family: 'IBM Plex Mono', size: 10, weight: '500' } } }
+    }
+  }
+});
+
+function updateMetric() {
+  const m = document.getElementById('metricSelect').value;
+  metricChart.data.datasets[0].label = m.toUpperCase();
+  metricChart.data.datasets[0].data = platforms.map(p=>calcM(p,m));
+  metricChart.update();
+}
+
+// ── CAMPAIGN CPA BARS ──────────────────────────────────────────────────────
+function renderCPABars() {
+  const sorted = [...campaigns].sort((a,b)=>a.cpa-b.cpa);
+  const max = Math.max(...sorted.map(c=>c.cpa));
+  document.getElementById('cpaBars').innerHTML = sorted.map(c=>`
+    <div class="mini-bar-row">
+      <div class="mini-bar-label">${c.campaign.replace(/_/g,' ')}</div>
+      <div class="mini-bar-track">
+        <div class="mini-bar-fill" style="width:${(c.cpa/max*100).toFixed(1)}%;background:${colors[c.platform]}"></div>
+      </div>
+      <div class="mini-bar-val" style="color:${c.cpa<=7?'var(--tt)':c.cpa<=10?'var(--accent)':'var(--gg)'}">$${c.cpa}</div>
+    </div>
+  `).join('');
+}
+renderCPABars();
+
+// ── FUNNEL ─────────────────────────────────────────────────────────────────
+function renderFunnel() {
+  const tt = daily.filter(d=>d.platform==='TikTok');
+  const impr = tt.reduce((s,r)=>s+r.impressions,0);
+  const vv   = tt.reduce((s,r)=>s+r.video_views,0);
+  const cl   = tt.reduce((s,r)=>s+r.clicks,0);
+  const cv   = tt.reduce((s,r)=>s+r.conversions,0);
+  const steps = [
+    { label:'Impressions', val:(impr/1e6).toFixed(1)+'M', pct:100 },
+    { label:'Video Views', val:(vv/1e6).toFixed(1)+'M',   pct:Math.round(vv/impr*100) },
+    { label:'Clicks',      val:(cl/1e3).toFixed(0)+'K',   pct:+(cl/impr*100).toFixed(1) },
+    { label:'Conversions', val:cv.toLocaleString(),        pct:+(cv/impr*100).toFixed(2) }
+  ];
+  const shades = ['rgba(0,131,110,0.85)','rgba(0,131,110,0.65)','rgba(0,131,110,0.45)','rgba(0,131,110,0.30)'];
+  document.getElementById('funnelWrap').innerHTML = steps.map((s,i)=>`
+    <div class="funnel-step">
+      <div class="funnel-label">${s.label}</div>
+      <div class="funnel-bar-outer">
+        <div class="funnel-bar" style="width:${Math.max(s.pct,3)}%;background:${shades[i]}">
+          ${s.pct>=8?s.pct+'%':''}
+        </div>
+      </div>
+      <div class="funnel-val">${s.val}</div>
+    </div>
+    ${i<steps.length-1?`<div class="funnel-drop">▾ ${Math.round((1-(steps[i+1].pct/100/(s.pct/100||1)))*100)||''}% drop</div>`:''}
+  `).join('');
+}
+renderFunnel();
+
+// ── TABLE ──────────────────────────────────────────────────────────────────
+function renderTable() {
+  const key = document.getElementById('sortSelect').value;
+  const sorted = [...campaigns].sort((a,b)=>key==='cpa'||key==='ctr'?a[key]-b[key]:b[key]-a[key]);
+  document.getElementById('campTbody').innerHTML = sorted.map((c,i)=>{
+    const pc = c.platform==='Facebook'?'plat-fb':c.platform==='Google'?'plat-gg':'plat-tt';
+    const cc = c.cpa<=7?'good':c.cpa<=10?'warn':'bad';
+    return `<tr>
+      <td>${c.campaign.replace(/_/g,' ')}</td>
+      <td><span class="plat-tag ${pc}">${c.platform}</span></td>
+      <td>$${c.spend.toLocaleString()}</td>
+      <td>${(c.impressions/1e6).toFixed(2)}M</td>
+      <td>${(c.clicks/1e3).toFixed(1)}K</td>
+      <td>${c.ctr}%</td>
+      <td>${c.conversions.toLocaleString()}</td>
+      <td class="${cc}">$${c.cpa}</td>
+    </tr>`;
+  }).join('');
+}
+renderTable();
+</script>
+</body>
+</html>
